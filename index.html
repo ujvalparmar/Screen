@@ -1,1 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Screener</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <h1 class="logo">Stock Screener</h1>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Analyze Stocks with Ease</h1>
+            <p>Explore real-time data, advanced filters, and dynamic charts to make informed investment decisions.</p>
+            <button onclick="document.getElementById('search-bar').focus()">Get Started</button>
+        </div>
+    </section>
+
+    <!-- Search Bar -->
+    <section class="search-bar">
+        <input type="text" id="search-bar" placeholder="Enter stock symbol (e.g., AAPL)">
+        <button id="search-button">Search</button>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>Real-Time Data</h3>
+                    <p>Get the latest updates on stock prices instantly.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Advanced Filters</h3>
+                    <p>Sort and filter stocks to match your investment goals.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Dynamic Graphs</h3>
+                    <p>Visualize stock trends with interactive charts.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stock Data Section -->
+    <section id="graph-container" class="container">
+        <h2>Stock Graph</h2>
+        <canvas id="stock-graph"></canvas>
+    </section>
+
+    <section id="table-container" class="container">
+        <h2>Stock Data</h2>
+        <table id="stock-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Open</th>
+                    <th>High</th>
+                    <th>Low</th>
+                    <th>Close</th>
+                    <th>Volume</th>
+                </tr>
+            </thead>
+            <tbody id="stock-table-body">
+                <!-- Data will be injected dynamically -->
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Stock Screener. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const searchBar = document.querySelector("#search-bar");
+            const searchButton = document.querySelector("#search-button");
+            const graphContainer = document.querySelector("#graph-container");
+
+            const stockTableBody = document.querySelector("#stock-table-body");
+            const stockTable = document.querySelector("#stock-table");
+
+            const apiKey = "Q1kaQmkji6MrRa62BNNNMredTgCFagj3";
+            const apiUrl = "https://example-stock-api.com/data?symbol=";
+
+            // Event listener for search
+            searchButton.addEventListener("click", () => {
+                const query = searchBar.value.trim();
+                if (query) {
+                    fetchStockData(query);
+                } else {
+                    alert("Please enter a valid stock symbol.");
+                }
+            });
+
+            async function fetchStockData(stockSymbol) {
+                try {
+                    const response = await fetch(`${apiUrl}${stockSymbol}&apikey=${apiKey}`);
+                    if (!response.ok) throw new Error("Error fetching stock data.");
+
+                    const data = await response.json();
+                    renderStockGraph(data);
+                    renderStockTable(data);
+                } catch (error) {
+                    console.error(error);
+                    alert("Unable to fetch stock data. Please try again later.");
+                }
+            }
+
+            function renderStockGraph(data) {
+                // Clear existing graph
+                graphContainer.innerHTML = '<canvas id="stock-graph"></canvas>';
+                const ctx = document.querySelector("#stock-graph").getContext("2d");
+
+                // Extract data for the graph
+                const labels = data.history.map((entry) => entry.date);
+                const prices = data.history.map((entry) => entry.close);
+
+                new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels,
+                        datasets: [
+                            {
+                                label: `${data.symbol} Stock Prices`,
+                                data: prices,
+                                borderColor: "#2563eb",
+                                backgroundColor: "rgba(37, 99, 235, 0.1)",
+                                tension: 0.3,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: "top",
+                            },
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: "Date",
+                                },
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: "Price (USD)",
+                                },
+                            },
+                        },
+                    },
+                });
+            }
+
+            function renderStockTable(data) {
+                // Clear existing table data
+                stockTableBody.innerHTML = "";
+
+                // Populate table with stock data
+                data.history.forEach((entry) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${entry.date}</td>
+                        <td>${entry.open}</td>
+                        <td>${entry.high}</td>
+                        <td>${entry.low}</td>
+                        <td>${entry.close}</td>
+                        <td>${entry.volume}</td>
+                    `;
+                    stockTableBody.appendChild(row);
+                });
+
+                // Show table
+                stockTable.style.display = "table";
+            }
+        });
+    </script>
+</body>
+
+</html>
 
